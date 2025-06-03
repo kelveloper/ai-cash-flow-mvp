@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cash Flow Dashboard with XAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>Cash Flow Dashboard</h1>
+            <div class="controls">
+                <select id="forecastPeriod">
+                    <option value="30">30 Days</option>
+                    <option value="60">60 Days</option>
+                    <option value="90">90 Days</option>
+                </select>
+                <button id="refreshBtn">Refresh</button>
+            </div>
+        </header>
+
+        <main>
+            <section class="forecast-section">
+                <h2>Cash Flow Forecast</h2>
+                <div class="chart-container">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+            </section>
+
+            <section class="insights-section">
+                <h2>AI Insights</h2>
+                <div id="insightsContainer">
+                    <!-- XAI insights will be populated here -->
+                </div>
+            </section>
+
+            <section class="details-section">
+                <h2>Transaction Details</h2>
+                <div id="transactionDetails">
+                    <!-- Transaction details will be populated here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', path='/js/app.js') }}"></script>
+</body>
+</html> 
