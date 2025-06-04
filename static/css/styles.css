@@ -99,4 +99,138 @@ h2 {
         flex-direction: column;
         gap: 15px;
     }
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.data-selector {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.data-selector label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.data-selector select {
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 0.9rem;
+    color: #495057;
+    cursor: pointer;
+    transition: border-color 0.15s ease-in-out;
+}
+
+.data-selector select:hover {
+    border-color: #80bdff;
+}
+
+.data-selector select:focus {
+    outline: 0;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.transaction-table th,
+.transaction-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.transaction-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.transaction-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.transaction-table td.income {
+    color: #28a745;
+    font-weight: 500;
+}
+
+.transaction-table td.expense {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.forecast-controls {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 150px;
+}
+
+.control-group label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.control-group select,
+.control-group input {
+    padding: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background-color: white;
+}
+
+.control-group select:focus,
+.control-group input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.btn:hover {
+    background-color: #2980b9;
+}
+
+.btn:active {
+    transform: translateY(1px);
 } 

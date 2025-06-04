@@ -5,19 +5,19 @@
 * Set up project structure with `index.html`, `styles.css`, and `app.js` ✓
 * Create responsive dashboard layout using CSS Grid/Flexbox ✓
 * Implement basic navigation and placeholder sections for forecast and insights ✓
-* Add loading states and error handling UI components
+* Add loading states and error handling UI components ✓
 
 ### Backend/AI Logic:
 * Initialize Python project with FastAPI ✓
 * Set up virtual environment and requirements.txt ✓
 * Create basic API endpoints structure ✓
-* Implement data validation schemas using Pydantic
+* Implement data validation schemas using Pydantic ✓
 
 ### Data:
-* Create `mock_data/transactions.csv` with 12 months of realistic data
-* Define data schema with columns: date, amount, type, category, description, frequency
-* Generate mock data with patterns (seasonal, recurring, anomalies)
-* Create data loading and preprocessing utilities
+* Create `mock_data/transactions.csv` with 12 months of realistic data ✓
+* Define data schema with columns: date, amount, type, category, description, frequency ✓
+* Generate mock data with patterns (seasonal, recurring, anomalies) ✓
+* Create data loading and preprocessing utilities ✓
 
 ## Week 2: Core Forecasting & XAI Foundation
 ### UI:
