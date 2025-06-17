@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-capital-one-gray-dark;
+  }
+}
+
+@layer components {
+  /* Grid Layout Components */
+  .dashboard-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+
+  .transaction-grid {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+  }
+
+  .summary-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4;
+  }
+
+  .filters-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4;
+  }
+
+  /* Flex Layout Components */
+  .flex-between {
+    @apply flex items-center justify-between;
+  }
+
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .flex-start {
+    @apply flex items-center justify-start;
+  }
+
+  .flex-end {
+    @apply flex items-center justify-end;
+  }
+
+  .flex-col-center {
+    @apply flex flex-col items-center justify-center;
+  }
+
+  .flex-col-between {
+    @apply flex flex-col items-center justify-between;
+  }
+
+  .flex-grow {
+    @apply flex-1;
+  }
+
+  /* Combined Grid and Flex Components */
+  .header-container {
+    @apply flex-between p-4 bg-white shadow-capital;
+  }
+
+  .card-content {
+    @apply flex-col-between h-full;
+  }
+
+  .transaction-item {
+    @apply flex-between p-4 border-b border-capital-one-border hover:bg-capital-one-gray-light hover:translate-x-1 transition-all duration-200;
+  }
+
+  .transaction-details {
+    @apply flex-grow;
+  }
+
+  .transaction-actions {
+    @apply flex items-center gap-2;
+  }
+
+  .filter-group {
+    @apply flex items-center gap-2;
+  }
+
+  .summary-card {
+    @apply card flex-col-center text-center;
+  }
+
+  .summary-value {
+    @apply text-2xl font-bold text-capital-one-blue;
+  }
+
+  .summary-label {
+    @apply text-sm text-capital-one-gray-dark;
+  }
+
+  /* Balance Card Specific Styles */
+  .balance-card {
+    @apply bg-gradient-to-br from-blue-900 to-blue-600 rounded-xl shadow p-6;
+  }
+
+  .balance-card-header {
+    @apply text-lg tracking-widest font-semibold mb-1;
+  }
+
+  .balance-card-amount {
+    @apply text-4xl font-bold mb-1;
+  }
+
+  .balance-card-label {
+    @apply text-sm opacity-80 mb-4;
+  }
+
+  .balance-card-details {
+    @apply flex items-center gap-4 mb-1;
+  }
+
+  .balance-card-button {
+    @apply mt-4 bg-white text-blue-900 font-semibold rounded px-4 py-2 shadow hover:bg-gray-100 transition;
+  }
+
+  /* Existing Components */
+  .btn {
+    @apply px-4 py-2 rounded font-medium transition-all duration-200 inline-flex items-center gap-2;
+  }
+
+  .btn-primary {
+    @apply bg-capital-one-blue text-white hover:bg-opacity-90 hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .btn-outline {
+    @apply border border-capital-one-blue text-capital-one-blue hover:bg-capital-one-blue hover:text-white;
+  }
+
+  .card {
+    @apply bg-white rounded-lg p-6 shadow-capital hover:shadow-capital-hover transition-all duration-200;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 border border-capital-one-border rounded focus:border-capital-one-blue focus:ring-2 focus:ring-capital-one-blue focus:ring-opacity-25;
+  }
+
+  .badge {
+    @apply px-3 py-1 rounded-full text-sm font-medium inline-flex items-center gap-1;
+  }
+
+  .badge-posted {
+    @apply bg-capital-one-success text-white;
+  }
+
+  .badge-pending {
+    @apply bg-capital-one-warning text-capital-one-gray-dark;
+  }
+
+  .loading {
+    @apply relative;
+  }
+
+  .loading::after {
+    @apply content-[''] absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50;
+  }
+
+  .loading::before {
+    @apply content-[''] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 border-2 border-capital-one-border border-t-capital-one-blue rounded-full animate-spin-slow z-50;
+  }
+
+  .error-message, .success-message {
+    @apply fixed top-4 right-4 p-4 rounded shadow-capital z-50 animate-slide-in;
+  }
+
+  .error-message {
+    @apply bg-capital-one-danger text-white;
+  }
+
+  .success-message {
+    @apply bg-capital-one-success text-white;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .btn, .card {
+    @apply border-2 border-current;
+  }
+} 

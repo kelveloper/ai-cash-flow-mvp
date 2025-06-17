@@ -1,0 +1,5 @@
+category,pattern,recommendation,confidence
+sales,Morning rush hour coffee sales peak,Consider adding more baristas during morning rush,0.95
+inventory,Weekly coffee bean and ingredient orders,Set up automatic reordering system for artisanal coffee beans,0.9
+utilities,Higher utility costs during summer,Optimize equipment usage during peak hours,0.85
+invoice,Regular business client invoicing,Implement automated invoice reminders for coffee service clients,0.8

@@ -1,0 +1,113 @@
+date,time,description,amount,category,type,payment_method,account,status
+2025-06-10,12:47:00,CASH APP* JANE DOE,22.26,Merchandise,income,Mobile Payment,Checking Account,posted
+2025-06-10,12:55:00,Corporate Event Sale,309.86,Catering,income,Cash,Credit Account,posted
+2025-06-10,12:55:00,Utility Payment,-255.63,Utilities,expense,Cash,Checking Account,posted
+2025-06-10,12:59:00,Miscellaneous Sale,3.46,Merchandise,income,Debit Card,Checking Account,posted
+2025-06-10,13:00:00,Staff Payment,-3661.68,Salary,expense,Debit Card,Checking Account,posted
+2025-06-10,13:03:00,AMZN Mktp US*AB123,4.37,Supplies,income,Debit Card,Checking Account,posted
+2025-06-10,13:24:00,Birthday Party Sale,163.37,Catering,income,Debit Card,Checking Account,posted
+2025-06-10,13:41:00,GOOGLE PAY* JANE DOE,16.38,Merchandise,income,Cash,Checking Account,posted
+2025-06-10,14:09:00,Miscellaneous Sale,6.27,Merchandise,income,Mobile Payment,Checking Account,posted
+2025-06-10,14:15:00,Electrical Work,-177.81,Maintenance,expense,Credit Card,Credit Account,posted
+2025-06-10,14:45:00,Birthday Party Sale,325.71,Catering,income,Debit Card,Checking Account,posted
+2025-06-10,14:53:00,CIGNA*HEALTH*AB123,-3377.5,Utilities,expense,Debit Card,Checking Account,posted
+2025-06-10,15:51:00,Electrical Work,-164.61,Maintenance,expense,Cash,Credit Account,posted
+2025-06-10,15:54:00,AIRBNB*AB123,4.04,Merchandise,income,Mobile Payment,Checking Account,posted
+2025-06-10,16:05:00,INST*INSTACART*AB123,11.77,Supplies,income,Cash,Credit Account,posted
+2025-06-10,16:12:00,SYSCO*FOOD*AB123,-4153.83,Supplies,expense,Debit Card,Checking Account,posted
+2025-06-10,16:56:00,Miscellaneous Expense,-20.63,Supplies,expense,Cash,Credit Account,posted
+2025-06-10,17:08:00,Bagel Sale,4.04,Pastry,income,Debit Card,Checking Account,posted
+2025-06-10,17:09:00,Thermos Sale,24.24,Merchandise,income,Debit Card,Checking Account,posted
+2025-06-10,17:24:00,Danish Sale,3.89,Pastry,income,Credit Card,Credit Account,posted
+2025-06-10,17:27:00,INST*INSTACART*AB123,24.93,Supplies,income,Mobile Payment,Checking Account,posted
+2025-06-10,17:36:00,TARGET.COM*AB123,3.01,Supplies,income,Cash,Checking Account,posted
+2025-06-10,17:37:00,Miscellaneous Expense,-13.07,Supplies,expense,Debit Card,Checking Account,posted
+2025-06-10,17:45:00,Veggie Wrap Sale,10.62,Sandwich,income,Cash,Checking Account,posted
+2025-06-10,17:45:00,GRUB*GRUBHUB*AB123,8.74,Supplies,income,Debit Card,Checking Account,posted
+2025-06-10,17:47:00,WIRE TRANSFER*AB123,-3.85,Utilities,expense,Credit Card,Credit Account,posted
+2025-06-10,17:50:00,COMCAST*INTERNET*AB123,-5.22,Utilities,expense,Mobile Payment,Checking Account,posted
+2025-06-10,18:11:00,Bagel Sale,3.59,Pastry,income,Debit Card,Checking Account,posted
+2025-06-10,18:27:00,BLT Sale,10.96,Sandwich,income,Mobile Payment,Checking Account,posted
+2025-06-10,18:43:00,Miscellaneous Sale,-3.46,Merchandise,expense,Cash,Checking Account,posted
+2025-06-10,18:45:00,Thermos Sale,11.53,Merchandise,income,Credit Card,Credit Account,posted
+2025-06-10,18:46:00,Thermos Sale,13.39,Merchandise,income,Cash,Credit Account,posted
+2025-06-10,18:47:00,Bagel Sale,3.86,Pastry,income,Debit Card,Checking Account,posted
+2025-06-10,18:47:00,Birthday Party Sale,268.43,Catering,income,Cash,Credit Account,posted
+2025-06-10,18:48:00,Scone Sale,3.04,Pastry,income,Debit Card,Checking Account,posted
+2025-06-10,18:49:00,Plumbing Fix,-143.0,Maintenance,expense,Mobile Payment,Checking Account,posted
+2025-06-10,19:09:00,Hat Sale,10.74,Merchandise,income,Cash,Credit Account,posted
+2025-06-10,19:23:00,Wages,-2294.22,Salary,expense,Cash,Credit Account,posted
+2025-06-10,19:41:00,Miscellaneous Sale,-1.26,Merchandise,expense,Cash,Checking Account,posted
+2025-06-10,20:04:00,Scone Sale,3.62,Pastry,income,Credit Card,Credit Account,posted
+2025-06-10,20:26:00,Staff Payment,-3826.25,Salary,expense,Credit Card,Credit Account,posted
+2025-06-10,20:28:00,Holiday Party Sale,133.0,Catering,income,Debit Card,Checking Account,posted
+2025-06-10,20:43:00,SPOTIFY*AB123,-2.22,Utilities,expense,Cash,Checking Account,posted
+2025-06-10,20:46:00,Office Meeting Sale,390.44,Catering,income,Mobile Payment,Checking Account,posted
+2025-06-10,20:52:00,Corporate Event Sale,108.26,Catering,income,Debit Card,Checking Account,posted
+2025-06-11,07:12:00,SPOTIFY*AB123,18.21,Utilities,expense,Credit Card,Credit Account,posted
+2025-06-11,07:15:00,Bagel Sale,4.45,Pastry,income,Cash,Credit Account,posted
+2025-06-11,07:30:00,BLT Sale,9.9,Sandwich,income,Mobile Payment,Checking Account,posted
+2025-06-11,07:37:00,HULU*AB123,3.04,Utilities,expense,Debit Card,Checking Account,posted
+2025-06-11,07:41:00,ZELLE PMT - From Maria R.,255.13,Merchandise,income,Debit Card,Checking Account,posted
+2025-06-11,07:54:00,Cold Brew Sale,3.56,Coffee,income,Cash,Credit Account,posted
+2025-06-11,08:03:00,Thermos Sale,21.31,Merchandise,income,Debit Card,Checking Account,posted
+2025-06-11,08:05:00,AMZN*MKTPLACE*AB123,3.6,Supplies,income,Debit Card,Checking Account,posted
+2025-06-11,08:09:00,Miscellaneous Sale,1.85,Merchandise,income,Debit Card,Checking Account,posted
+2025-06-11,08:18:00,UBER*RIDE*AB123,131.46,Utilities,expense,Credit Card,Credit Account,posted
+2025-06-11,08:22:00,HD.COM*AB123,11.64,Supplies,income,Credit Card,Credit Account,posted
+2025-06-11,09:05:00,INST*INSTACART*AB123,10.85,Supplies,income,Credit Card,Credit Account,posted
+2025-06-11,09:15:00,Miscellaneous Sale,-4.26,Merchandise,expense,Debit Card,Checking Account,posted
+2025-06-11,09:22:00,Chicken Club Sale,8.52,Sandwich,income,Mobile Payment,Checking Account,posted
+2025-06-11,09:23:00,Miscellaneous Expense,-18.15,Supplies,expense,Mobile Payment,Checking Account,posted
+2025-06-11,09:42:00,Utility Payment,-297.46,Utilities,expense,Cash,Checking Account,posted
+2025-06-11,10:04:00,Chicken Club Sale,8.09,Sandwich,income,Credit Card,Credit Account,posted
+2025-06-11,10:06:00,Miscellaneous Sale,-1.8,Merchandise,expense,Credit Card,Credit Account,posted
+2025-06-11,10:08:00,TARGET.COM*AB123,5.14,Supplies,income,Debit Card,Checking Account,posted
+2025-06-11,10:09:00,Email Campaign,-213.78,Marketing,expense,Cash,Credit Account,posted
+2025-06-11,10:12:00,Veggie Wrap Sale,9.27,Sandwich,income,Cash,Checking Account,posted
+2025-06-11,10:12:00,Miscellaneous Expense,-4.56,Supplies,expense,Credit Card,Credit Account,posted
+2025-06-11,10:13:00,BLT Sale,8.83,Sandwich,income,Mobile Payment,Checking Account,posted
+2025-06-11,10:17:00,Miscellaneous Expense,-8.14,Supplies,expense,Mobile Payment,Checking Account,posted
+2025-06-11,10:32:00,Corporate Event Sale,484.15,Catering,income,Debit Card,Checking Account,posted
+2025-06-11,10:45:00,Promotional Event,-395.09,Marketing,expense,Credit Card,Credit Account,posted
+2025-06-11,10:53:00,GORDON FOOD*AB123,-13.99,Supplies,expense,Credit Card,Credit Account,posted
+2025-06-11,10:59:00,Grilled Cheese Sale,8.55,Sandwich,income,Mobile Payment,Checking Account,posted
+2025-06-11,11:07:00,Bagel Sale,4.54,Pastry,income,Cash,Checking Account,posted
+2025-06-11,11:30:00,ETSY.COM*HandmadeDecor,17.18,Merchandise,income,Debit Card,Checking Account,posted
+2025-06-11,12:11:00,UNITED HEALTH*AB123,-287.41,Utilities,expense,Credit Card,Credit Account,posted
+2025-06-11,12:14:00,HD.COM*AB123,5.53,Supplies,income,Cash,Credit Account,posted
+2025-06-11,12:17:00,Wages,-2525.65,Salary,expense,Debit Card,Checking Account,posted
+2025-06-11,12:27:00,Thermos Sale,19.69,Merchandise,income,Mobile Payment,Checking Account,posted
+2025-06-11,13:01:00,Miscellaneous Sale,7.78,Merchandise,income,Cash,Checking Account,posted
+2025-06-11,13:05:00,Miscellaneous Expense,-19.26,Supplies,expense,Cash,Credit Account,posted
+2025-06-11,13:12:00,Turkey Panini Sale,8.89,Sandwich,income,Cash,Checking Account,posted
+2025-06-11,13:32:00,DD*DOORDASH*AB123,213.55,Supplies,income,Cash,Checking Account,posted
+2025-06-11,13:37:00,NYC*DOF*AB123,-320.79,Utilities,expense,Credit Card,Credit Account,posted
+2025-06-11,13:39:00,Scone Sale,4.57,Pastry,income,Debit Card,Checking Account,posted
+2025-06-11,13:46:00,CONED*ELECTRIC*AB123,-287.64,Utilities,expense,Debit Card,Checking Account,posted
+2025-06-11,14:17:00,Miscellaneous Sale,5.24,Merchandise,income,Credit Card,Credit Account,posted
+2025-06-11,14:19:00,SLACK*SUBSCRIPTION*AB123,-4.63,Utilities,expense,Cash,Checking Account,posted
+2025-06-11,14:32:00,DISNEY+*AB123,14.5,Utilities,expense,Credit Card,Credit Account,posted
+2025-06-11,14:35:00,TGT*TARGET*AB123,-456.31,Supplies,expense,Cash,Credit Account,posted
+2025-06-11,15:18:00,SPOTIFY*AB123,4.26,Utilities,expense,Credit Card,Credit Account,posted
+2025-06-11,15:29:00,VENMO PMT - To Leo G.,1.77,Utilities,expense,Credit Card,Credit Account,posted
+2025-06-11,15:38:00,BLT Sale,9.44,Sandwich,income,Credit Card,Credit Account,posted
+2025-06-11,15:46:00,Mug Sale,10.51,Merchandise,income,Cash,Credit Account,posted
+2025-06-11,16:02:00,Cups,-114.62,Supplies,expense,Mobile Payment,Checking Account,posted
+2025-06-11,16:42:00,Danish Sale,2.78,Pastry,income,Credit Card,Credit Account,posted
+2025-06-11,16:46:00,Espresso Sale,5.67,Coffee,income,Credit Card,Credit Account,posted
+2025-06-11,16:51:00,ETSY*HANDMADE*AB123,4.94,Merchandise,income,Credit Card,Credit Account,posted
+2025-06-11,17:11:00,Thermos Sale,14.33,Merchandise,income,Cash,Checking Account,posted
+2025-06-11,17:32:00,Holiday Party Sale,153.12,Catering,income,Credit Card,Credit Account,posted
+2025-06-11,17:44:00,Thermos Sale,20.85,Merchandise,income,Debit Card,Checking Account,posted
+2025-06-11,18:08:00,Thermos Sale,18.16,Merchandise,income,Cash,Credit Account,posted
+2025-06-11,18:43:00,DD*DOORDASH*AB123,8.71,Supplies,income,Mobile Payment,Checking Account,posted
+2025-06-11,18:45:00,Holiday Party Sale,322.33,Catering,income,Cash,Credit Account,posted
+2025-06-11,19:21:00,Corporate Event Sale,141.93,Catering,income,Debit Card,Checking Account,posted
+2025-06-11,19:56:00,Bagel Sale,2.75,Pastry,income,Debit Card,Checking Account,posted
+2025-06-11,20:01:00,Miscellaneous Expense,-7.28,Supplies,expense,Cash,Checking Account,posted
+2025-06-11,20:12:00,UBER*EATS*AB123,10.06,Supplies,income,Mobile Payment,Checking Account,posted
+2025-06-11,20:21:00,Miscellaneous Expense,-15.27,Supplies,expense,Cash,Credit Account,posted
+2025-06-11,20:27:00,Miscellaneous Sale,-0.2,Merchandise,expense,Credit Card,Credit Account,posted
+2025-06-11,20:35:00,Muffin Sale,4.66,Pastry,income,Debit Card,Checking Account,posted
+2025-06-11,20:40:00,NYC*PARKING*AB123,-13.73,Utilities,expense,Cash,Checking Account,posted 

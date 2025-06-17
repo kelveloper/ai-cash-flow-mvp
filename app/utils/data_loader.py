@@ -3,13 +3,13 @@ import numpy as np
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime, date, timedelta
-from ..models.transaction import TransactionCreate, TransactionType, TransactionCategory, TransactionFrequency
+from app.models.transaction import TransactionCreate, TransactionType, TransactionCategory, TransactionFrequency
 
 class DataLoader:
-    def __init__(self, data_dir: str = "static/data"):
-        self.data_dir = Path(data_dir)
-        self.transactions_file = self.data_dir / "transactions.csv"
-        self.current_file = "transactions.csv"
+    def __init__(self):
+        self.data_dir = Path(__file__).parent.parent.parent / "data"
+        self.transactions_file = self.data_dir / "transactions2023.csv"
+        self.current_file = "transactions2023.csv"
         
         # Define validation rules
         self.validation_rules = {
@@ -70,6 +70,7 @@ class DataLoader:
             'ENTERTAINMENT': TransactionCategory.ENTERTAINMENT.value,
             'HEALTHCARE': TransactionCategory.HEALTHCARE.value,
             'TRANSPORTATION': TransactionCategory.TRANSPORTATION.value,
+            'BILL': TransactionCategory.BILL.value,
             'OTHER': TransactionCategory.OTHER.value
         }
         

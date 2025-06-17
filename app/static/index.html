@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cash Flow Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/tailwind.min.css') }}">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow p-4 flex items-center justify-center">
+        <h1 class="text-3xl font-bold text-blue-900 tracking-tight">Capital Two</h1>
+    </header>
+
+    <!-- Loading and Error Messages -->
+    <div id="loadingSpinner" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+    <div id="errorMessage" class="hidden fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50"></div>
+    <div id="successMessage" class="hidden fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50"></div>
+
+    <main class="flex-1 flex items-center justify-center min-h-screen p-4 sm:p-6 md:p-8">
+        <div class="flex flex-row gap-24 items-start justify-center w-full max-w-7xl">
+            <!-- Left Column: Stacked Cards -->
+            <div class="flex flex-col gap-16">
+                <!-- Checking Account Card (top) -->
+                <div class="bg-gradient-to-br from-blue-900 to-blue-600 rounded-[3rem] shadow p-8 w-full max-w-lg flex flex-col justify-between text-white border-2 border-blue-900">
+                    <div>
+                        <div class="text-lg md:text-xl tracking-widest font-bold mb-2">BUSINESS CHECKING</div>
+                        <div class="text-4xl md:text-5xl font-extrabold mb-2">$156,789.42</div>
+                        <div class="text-base md:text-lg opacity-80 mb-4">CURRENT BALANCE</div>
+                    </div>
+                    <button onclick="window.location.href='/checking-transactions'" class="mt-4 border-2 border-white text-white font-bold rounded-xl px-6 py-3 md:px-8 md:py-4 hover:bg-white hover:text-blue-900 transition text-lg">View Account</button>
+                </div>
+                <!-- Credit Card Card (bottom) -->
+                <div style="background: linear-gradient(135deg, #7851A9 0%, #4B286D 100%) !important; opacity: 1 !important;" class="rounded-[3rem] shadow p-8 w-full max-w-lg flex flex-col justify-between text-white border-2 border-purple-900">
+                    <div>
+                        <div class="text-lg md:text-xl tracking-widest font-bold mb-2">BUSINESS CREDIT CARD</div>
+                        <div class="text-4xl md:text-5xl font-extrabold mb-2">$11,234.56</div>
+                        <div class="text-base md:text-lg opacity-80 mb-4">AVAILABLE CREDIT</div>
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="text-base md:text-lg">Credit Limit</div>
+                            <div class="text-xl font-bold">$25,000</div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-base md:text-lg">Rewards Cash</div>
+                            <div class="text-xl font-bold">$19.29</div>
+                        </div>
+                    </div>
+                    <button onclick="window.location.href='/credit-transactions'" class="mt-4 border-2 border-white text-white font-bold rounded-xl px-6 py-3 md:px-8 md:py-4 hover:bg-white hover:text-purple-900 transition text-lg">View Account</button>
+                </div>
+            </div>
+            <!-- Right Column: Recent Transactions for Checking -->
+            <div class="flex-1 flex flex-col">
+                <div class="bg-white rounded-[3rem] shadow p-8 md:p-12 flex flex-col w-full max-w-3xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl md:text-2xl font-semibold">Recent Transactions - Checking Account</h2>
+                    </div>
+                    <ul id="recentTransactions" class="divide-y divide-gray-200 text-base md:text-lg">
+                        <!-- Recent transactions will be loaded here dynamically -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', path='js/app.js') }}" defer></script>
+    <script>
+        // Function to format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        // Function to format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        // Function to load recent transactions
+        async function loadRecentTransactions() {
+            try {
+                const response = await fetch('/api/transactions');
+                const data = await response.json();
+                const transactions = data.transactions; // Get the transactions array from the response
+                
+                // Sort transactions by date (most recent first) and take the first 5
+                const recentTransactions = transactions
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .slice(0, 5);
+
+                const transactionsList = document.getElementById('recentTransactions');
+                if (recentTransactions.length === 0) {
+                    transactionsList.innerHTML = '<li class="py-4 text-gray-500 text-center">No recent transactions</li>';
+                    return;
+                }
+
+                transactionsList.innerHTML = recentTransactions.map(transaction => `
+                    <li class="py-4 flex justify-between items-center">
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-900">${transaction.description}</div>
+                            <div class="text-sm text-gray-500">${formatDate(transaction.date)}</div>
+                        </div>
+                        <div class="ml-4 ${transaction.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}">
+                            ${transaction.type === 'INCOME' ? '+' : '-'}${formatCurrency(Math.abs(transaction.amount))}
+                        </div>
+                    </li>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                const transactionsList = document.getElementById('recentTransactions');
+                transactionsList.innerHTML = '<li class="py-4 text-red-500 text-center">Error loading transactions</li>';
+            }
+        }
+
+        // Load transactions when the page loads
+        document.addEventListener('DOMContentLoaded', loadRecentTransactions);
+
+        // Refresh transactions every 30 seconds
+        setInterval(loadRecentTransactions, 30000);
+    </script>
+</body>
+</html> 

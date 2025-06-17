@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from datetime import date, datetime
 from enum import Enum
 from typing import Optional, List, Dict, Any
+from decimal import Decimal
 
 class TransactionType(str, Enum):
     INCOME = "income"
@@ -23,15 +24,36 @@ class TransactionCategory(str, Enum):
     TRANSPORTATION = "transportation"
     ENTERTAINMENT = "entertainment"
     HEALTHCARE = "healthcare"
+    SUBSCRIPTIONS = "subscriptions"
+    FEES = "fees"
+    TAXES = "taxes"
+    INSURANCE = "insurance"
+    SUPPLIES = "supplies"
+    MERCHANDISE = "merchandise"
+    FOOD = "food"
+    COFFEE = "coffee"
+    MARKETING = "marketing"
+    MAINTENANCE = "maintenance"
+    PASTRY = "pastry"
+    SANDWICH = "sandwich"
+    CATERING = "catering"
+    BILL = "bill"
+    MISC = "misc"
     OTHER = "other"
+
+class TransactionStatus(str, Enum):
+    POSTED = "posted"
+    PENDING = "pending"
 
 class TransactionBase(BaseModel):
     date: date
-    amount: float = Field(gt=0)
-    transaction_type: TransactionType
+    amount: Decimal
+    type: TransactionType
     category: TransactionCategory
-    description: str = Field(min_length=1, max_length=200)
+    description: str
+    status: TransactionStatus
     frequency: TransactionFrequency
+    account_type: Optional[str] = None
 
 class TransactionCreate(TransactionBase):
     pass
@@ -113,4 +135,7 @@ class FinancialHealth(BaseModel):
     score: float = Field(..., ge=0, le=100, description="Health score (0-100)")
     status: str = Field(..., description="Status description")
     recommendations: List[str] = Field(..., description="List of recommendations")
-    last_updated: datetime = Field(default_factory=datetime.now, description="Last update timestamp") 
+    last_updated: datetime = Field(default_factory=datetime.now, description="Last update timestamp")
+
+class TransactionUpdate(BaseModel):
+    category: TransactionCategory 
