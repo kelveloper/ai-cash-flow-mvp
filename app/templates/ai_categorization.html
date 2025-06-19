@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Categorization - Capital Two</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='css/tailwind.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/tailwind.min.css') }}?v={{ version }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
@@ -79,10 +79,9 @@
                 [[ error ]]
             </div>
         </div>
-    </div>
 
-    <!-- Dex Floating Chatbot -->
-    <div id="dex-chatbot" class="fixed bottom-8 right-8 z-50" style="max-width: 350px;">
+        <!-- Dex Floating Chatbot -->
+        <div class="fixed bottom-8 right-8 z-50" style="max-width: 350px;">
         <div v-if="dexChatOpen" class="bg-white rounded-lg shadow-lg flex flex-col w-full" style="min-width: 320px; min-height: 400px;">
             <div class="flex items-center justify-between bg-blue-600 text-white px-4 py-2 rounded-t-lg">
                 <span class="font-bold">Dex - AI Assistant</span>
@@ -90,55 +89,97 @@
             </div>
             <div class="flex-1 overflow-y-auto p-4 space-y-2" style="background: #f9fafb;">
                 <div class="text-gray-700 mb-2">
-                    <b>Hi, I'm Dex!</b> I can help categorize your transactions for any month and generate a PDF report with insights. What would you like to do?
+                    <b>Hi, I'm Dex!</b> I can help categorize your transactions using AI. Select a month below to get started.
                 </div>
-                <div v-if="dexChatStep === 0">
-                    <button @click="dexChatStep = 1" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 mb-2">Categorize a Month</button>
-                    <button @click="dexChatStep = 2" class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Download PDF Report</button>
-                </div>
-                <div v-if="dexChatStep === 1">
-                    <div class="mb-2">Which month would you like to categorize?</div>
-                    <input v-model="dexMonth" type="month" class="border rounded px-2 py-1 mb-2 w-full" :max="maxMonth" />
-                    <button @click="categorizeMonth" :disabled="isDexLoading || !dexMonth" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                        <span v-if="isDexLoading">Categorizing...</span>
-                        <span v-else>Start Categorization</span>
-                    </button>
-                    <button @click="dexChatStep = 0" class="w-full mt-2 text-gray-600 hover:underline">Back</button>
-                </div>
-                <div v-if="dexChatStep === 2">
-                    <div class="mb-2">Which month would you like a PDF report for?</div>
-                    <input v-model="dexMonth" type="month" class="border rounded px-2 py-1 mb-2 w-full" :max="maxMonth" />
-                    <button @click="generatePDF" :disabled="isPDFLoading || !dexMonth" class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
-                        <span v-if="isPDFLoading">Generating PDF...</span>
-                        <span v-else>Download PDF</span>
-                    </button>
-                    <button @click="dexChatStep = 0" class="w-full mt-2 text-gray-600 hover:underline">Back</button>
-                </div>
+                <div class="mb-2">Which month would you like to categorize?</div>
+                <input v-model="dexMonth" type="month" class="border rounded px-2 py-1 mb-2 w-full" :max="maxMonth" />
+                <button @click="categorizeMonth" 
+                        :disabled="isDexLoading || !dexMonth"
+                        class="w-full bg-blue-600 text-white py-3 border-0 rounded-md text-base font-semibold mb-2 cursor-pointer hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span v-if="isDexLoading">Categorizing...</span>
+                    <span v-else>Categorize This Month</span>
+                </button>
                 <div v-if="dexResults">
                     <h3 class="text-lg font-semibold mb-2">Categorization Results</h3>
-                    <div class="max-h-32 overflow-y-auto mb-2">
-                        <div v-for="(tx, idx) in dexResults.slice(0, 10)" :key="idx" class="border-b py-1 flex flex-col">
-                            <span class="text-sm">[[ tx.description ]]</span>
-                            <span class="text-xs text-gray-600">Predicted: <b>[[ tx.predicted_category ]]</b> | Top: <span v-for="cat in tx.top_categories" :key="cat[0]">[[ cat[0] ]] ([[ (cat[1]*100).toFixed(1) ]]%) </span></span>
-                        </div>
-                        <div v-if="dexResults.length > 10" class="text-xs text-gray-500">...and [[ dexResults.length - 10 ]] more</div>
+                    <div v-if="!dexResults.length" class="text-gray-600 mb-4">
+                        No category changes suggested for this month. All transactions are already correctly categorized.
                     </div>
-                    <button @click="dexResults = null; dexChatStep = 0" class="w-full mt-2 text-gray-600 hover:underline">Back to Menu</button>
+                    <div v-else>
+                        <div class="text-sm text-gray-600 mb-2">
+                            Found [[ dexResults.length ]] transactions that may need recategorization
+                        </div>
+                        <div class="max-h-64 overflow-y-auto mb-2 border rounded-lg p-2">
+                            <div v-for="(tx, idx) in dexResults" :key="tx.id || idx" 
+                                 class="border-b py-2 last:border-b-0">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <div class="text-sm font-medium">[[ tx.description ]]</div>
+                                        <div class="text-xs text-gray-500">[[ tx.date ]] | $[[ Math.abs(tx.amount).toFixed(2) ]]</div>
+                                    </div>
+                                    <div class="ml-4 text-right">
+                                        <div class="text-xs">
+                                            <span class="text-gray-600">Original:</span>
+                                            <span class="font-medium" :class="{'text-red-600': tx.original_category === 'Misc'}">[[ tx.original_category ]]</span>
+                                        </div>
+                                        <div class="text-xs">
+                                            <span class="text-gray-600">Predicted:</span>
+                                            <span class="font-medium text-blue-600">[[ tx.predicted ]]</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-1 text-xs text-gray-500">
+                                    <div v-if="tx.top && tx.top.length">
+                                        Top predictions: 
+                                        <span v-for="(cat, idx) in tx.top" :key="cat[0]" 
+                                              class="inline-block mr-2">
+                                            [[ cat[0] ]] ([[ (cat[1]*100).toFixed(1) ]]%)
+                                        </span>
+                                    </div>
+                                    <div class="italic mt-1">[[ tx.explanation ]]</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button @click="dexResults = null" 
+                                    class="flex-1 text-gray-600 hover:text-gray-800 hover:underline">
+                                Categorize Another Month
+                            </button>
+                            <button @click="generatePDF" 
+                                    class="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                                Generate PDF Report
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div v-if="dexError" class="text-red-600 mt-2">[[ dexError ]]</div>
+                <div v-if="dexError" class="text-red-600 mt-2 p-2 bg-red-50 rounded-md">
+                    <div class="font-medium">Error:</div>
+                    <div>[[ dexError ]]</div>
+                </div>
+                <div v-if="isDexLoading" class="text-gray-600 mt-2">
+                    <div class="flex items-center justify-center p-4">
+                        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+                        <div>
+                            <div class="font-medium">Processing transactions...</div>
+                            <div class="text-sm text-gray-500">This may take a few moments</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <button v-if="!dexChatOpen" @click="dexChatOpen = true" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg p-4 flex items-center justify-center text-2xl">
             🤖
         </button>
+        </div>
     </div>
 
     <script>
+        console.log('Script loaded, Vue object:', Vue);
         const { createApp } = Vue
 
-        createApp({
+        const app = createApp({
             delimiters: ['[[', ']]'],
             data() {
+                console.log('Vue data() function called');
                 return {
                     description: '',
                     result: null,
@@ -146,7 +187,6 @@
                     isLoading: false,
                     // Dex Chatbot
                     dexChatOpen: false,
-                    dexChatStep: 0,
                     dexMonth: '',
                     dexResults: null,
                     dexError: null,
@@ -154,6 +194,10 @@
                     isPDFLoading: false,
                     maxMonth: new Date().toISOString().slice(0,7)
                 }
+            },
+            mounted() {
+                console.log('Vue app mounted successfully!');
+                console.log('dexChatOpen:', this.dexChatOpen);
             },
             computed: {
                 confidenceColorClass() {
@@ -196,22 +240,43 @@
                     }
                 },
                 async categorizeMonth() {
-                    if (!this.dexMonth) return
-                    this.isDexLoading = true
-                    this.dexError = null
-                    this.dexResults = null
+                    console.log('Categorize month clicked');
+                    if (!this.dexMonth) {
+                        console.log('No month selected');
+                        this.dexError = 'Please select a month first';
+                        return;
+                    }
+                    console.log('Selected month:', this.dexMonth);
+                    this.isDexLoading = true;
+                    this.dexError = null;
+                    this.dexResults = null;
                     try {
+                        console.log('Sending request to /api/categorize-month');
                         const response = await fetch('/api/categorize-month', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
                             body: JSON.stringify({ month: this.dexMonth })
-                        })
-                        if (!response.ok) throw new Error('Failed to categorize month')
-                        this.dexResults = await response.json()
+                        });
+                        console.log('Response received:', response.status);
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.error('Server error:', errorText);
+                            throw new Error(`Failed to categorize month: ${errorText}`);
+                        }
+                        const data = await response.json();
+                        console.log('Results:', data);
+                        if (!Array.isArray(data)) {
+                            throw new Error('Invalid response format from server');
+                        }
+                        this.dexResults = data;
                     } catch (err) {
-                        this.dexError = err.message
+                        console.error('Error:', err);
+                        this.dexError = err.message || 'An error occurred while categorizing the month';
                     } finally {
-                        this.isDexLoading = false
+                        this.isDexLoading = false;
                     }
                 },
                 async generatePDF() {
@@ -240,7 +305,11 @@
                     }
                 }
             }
-        }).mount('#app')
+        });
+        
+        console.log('About to mount Vue app to #app');
+        const mountedApp = app.mount('#app');
+        console.log('Vue app mounted:', mountedApp);
     </script>
 </body>
 </html> 
