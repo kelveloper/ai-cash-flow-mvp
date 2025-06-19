@@ -20,6 +20,9 @@
             </div>
             <div class="flex gap-2">
                 <a href="/" class="btn bg-white text-blue-700 border border-blue-700 px-4 py-2 rounded shadow hover:bg-blue-50 font-semibold transition" title="Back to Dashboard">Home</a>
+                <a href="/ai-categorization" class="btn bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 font-semibold transition flex items-center gap-2" title="AI-Powered Transaction Categorization">
+                    🤖 AI Categorization
+                </a>
                 <button id="export-btn" class="btn btn-primary bg-blue-700 text-white px-4 py-2 rounded shadow hover:bg-blue-800 transition">Export Data</button>
             </div>
         </div>
@@ -82,37 +85,7 @@
         </div>
     </main>
 
-    <!-- Dex Floating AI Button and Chatbot -->
-    <div id="dex-chatbot" style="position:fixed;bottom:32px;right:32px;z-index:9999;">
-        <button v-if="!dexChatOpen" @click="dexChatOpen = true" style="width:64px;height:64px;border-radius:50%;background:#2563eb;color:white;font-size:2rem;box-shadow:0 4px 16px rgba(0,0,0,0.15);border:none;outline:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">
-            🤖
-        </button>
-        <div v-if="dexChatOpen" style="width:350px;min-height:400px;background:white;border-radius:1rem;box-shadow:0 4px 32px rgba(0,0,0,0.18);display:flex;flex-direction:column;">
-            <div style="background:#2563eb;color:white;padding:12px 20px;border-radius:1rem 1rem 0 0;display:flex;align-items:center;justify-content:space-between;">
-                <span style="font-weight:bold;">Dex - AI Assistant</span>
-                <button @click="dexChatOpen = false" style="background:none;border:none;color:white;font-size:1.5rem;cursor:pointer;">&minus;</button>
-            </div>
-            <div style="flex:1;overflow-y:auto;padding:16px;">
-                <div style="color:#374151;margin-bottom:12px;">
-                    <b>Hi, I'm Dex!</b> I can help categorize your transactions for the displayed month and generate a PDF report. What would you like to do?
-                </div>
-                <button @click="categorizeMonth" :disabled="isDexLoading" style="width:100%;background:#2563eb;color:white;padding:10px 0;border-radius:6px;margin-bottom:10px;font-weight:500;">Categorize This Month</button>
-                <button @click="generatePDF" :disabled="isPDFLoading" style="width:100%;background:#059669;color:white;padding:10px 0;border-radius:6px;font-weight:500;">Download PDF Report</button>
-                <div v-if="dexResults" style="margin-top:16px;">
-                    <h3 style="font-size:1rem;font-weight:600;margin-bottom:8px;">Categorization Results</h3>
-                    <div style="max-height:120px;overflow-y:auto;margin-bottom:8px;">
-                        <div v-for="(tx, idx) in dexResults.slice(0, 10)" :key="idx" style="border-bottom:1px solid #eee;padding:4px 0;">
-                            <span style="font-size:0.95em;">[[ tx.description ]]</span><br>
-                            <span style="font-size:0.8em;color:#6b7280;">Predicted: <b>[[ tx.predicted_category ]]</b></span>
-                        </div>
-                        <div v-if="dexResults.length > 10" style="font-size:0.8em;color:#9ca3af;">...and [[ dexResults.length - 10 ]] more</div>
-                    </div>
-                    <button @click="dexResults = null" style="width:100%;margin-top:4px;color:#2563eb;background:none;border:none;cursor:pointer;">Back to Menu</button>
-                </div>
-                <div v-if="dexError" style="color:#dc2626;margin-top:8px;">[[ dexError ]]</div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Debug script to verify script loading -->
     <script>
@@ -136,204 +109,19 @@
             delimiters: ['[[', ']]'],
             data() {
                 return {
-                    // Dex Chatbot
-                    dexChatOpen: false,
-                    dexCategorized: false,
-                    dexResults: null,
-                    dexError: null,
-                    isDexLoading: false,
-                    isPDFLoading: false,
-                    allCategories: [],
-                    userInput: '',
-                    dexMonthChanged: false,
-                    dexNoChangesMade: false
+                    currentMonth: new Date()
                 }
             },
             mounted() {
-                // Listen for month changes
-                window.addEventListener('dex-month-changed', this.handleMonthChange);
-                this.fetchCategories();
-                
                 // Initialize currentMonth if not set
                 if (!window.currentMonth) {
                     window.currentMonth = new Date().toISOString().slice(0, 7);
                     console.log('[DEBUG] Set initial currentMonth:', window.currentMonth);
                 }
             },
-            beforeUnmount() {
-                window.removeEventListener('dex-month-changed', this.handleMonthChange);
-            },
             methods: {
-                getCurrentMonth() {
-                    return window.currentMonth;
-                },
-                async fetchCategories() {
-                    try {
-                        const response = await fetch('/api/categories');
-                        if (!response.ok) throw new Error('Failed to fetch categories');
-                        this.allCategories = await response.json();
-                    } catch (err) {
-                        console.error('Error fetching categories:', err);
-                    }
-                },
-                async categorizeMonth() {
-                    const month = this.getCurrentMonth();
-                    console.log('[DEBUG] Current month:', month);
-                    if (!month) {
-                        console.log('[DEBUG] No month found');
-                        return;
-                    }
-                    this.isDexLoading = true;
-                    this.dexError = null;
-                    this.dexCategorized = false;
-                    this.dexResults = null;
-                    this.dexMonthChanged = false;
-                    try {
-                        console.log('[DEBUG] Sending request to /api/categorize-month with month:', month);
-                        const response = await fetch('/api/categorize-month', {
-                            method: 'POST',
-                            headers: { 
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({ month: month })
-                        });
-                        console.log('[DEBUG] Response status:', response.status);
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.detail || 'Failed to categorize month');
-                        }
-                        let results = await response.json();
-                        this.dexResults = results;
-                        this.dexCategorized = true;
-                    } catch (err) {
-                        console.error('[DEBUG] Error categorizing month:', err);
-                        this.dexError = err.message;
-                    } finally {
-                        this.isDexLoading = false;
-                    }
-                },
-                handleMonthChange() {
-                    // Reset Dex state
-                    this.dexCategorized = false;
-                    this.dexResults = null;
-                    this.dexError = null;
-                    this.dexMonthChanged = true;
-                    
-                    // Refresh categories for the new month
-                    this.fetchCategories();
-                    
-                    // If Dex is open, automatically categorize the new month
-                    if (this.dexChatOpen) {
-                        this.categorizeMonth();
-                    }
-                },
-                async confirmChanges() {
-                    if (!this.dexResults) return;
-                    this.isDexLoading = true;
-                    try {
-                        const response = await fetch('/api/update-transaction-categories', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                updates: this.dexResults.map(tx => ({
-                                    transaction_id: tx.id,
-                                    category: tx.user_category || tx.predicted
-                                }))
-                            })
-                        });
-                        if (!response.ok) throw new Error('Failed to update categories');
-                        
-                        this.dexError = "Changes saved successfully!";
-                        setTimeout(() => {
-                            this.dexChatOpen = false;
-                            this.dexCategorized = false;
-                            this.dexResults = null;
-                            this.dexError = null;
-                        }, 2000);
-                        
-                        // Refresh the transactions table
-                        if (typeof loadTransactions === 'function') {
-                            loadTransactions(this.getCurrentMonth());
-                        }
-                    } catch (err) {
-                        console.error('[DEBUG] Error saving changes:', err);
-                        this.dexError = err.message;
-                    } finally {
-                        this.isDexLoading = false;
-                    }
-                },
-                cancelChanges() {
-                    this.dexError = "No changes were made to any categories.";
-                    this.dexNoChangesMade = true;
-                    setTimeout(() => {
-                        this.dexChatOpen = false;
-                        this.dexCategorized = false;
-                        this.dexResults = null;
-                        this.dexError = null;
-                    }, 2000);
-                },
-                async generatePDFWithUserCategories() {
-                    this.isPDFLoading = true;
-                    try {
-                        const response = await fetch('/api/generate-month-pdf', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/pdf' },
-                            body: JSON.stringify({
-                                month: this.getCurrentMonth(),
-                                transactions: this.dexResults ? this.dexResults.map(tx => ({
-                                    id: tx.id,
-                                    description: tx.description,
-                                    category: tx.user_category || tx.predicted,
-                                    amount: tx.amount,
-                                    date: tx.date
-                                })) : [],
-                                no_changes: this.dexNoChangesMade
-                            })
-                        });
-                        if (!response.ok) throw new Error('Failed to generate PDF');
-                        const blob = await response.blob();
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `${this.getCurrentMonth()}_reviewed_report.pdf`;
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        window.URL.revokeObjectURL(url);
-                    } catch (err) {
-                        this.dexError = err.message;
-                    } finally {
-                        this.isPDFLoading = false;
-                        this.dexNoChangesMade = false;
-                    }
-                }
             },
-            computed: {
-                getMonthLabel() {
-                    return function(monthYear) {
-                        if (!monthYear) return '';
-                        const [year, month] = monthYear.split('-');
-                        const d = new Date(year, parseInt(month) - 1, 1);
-                        return `${d.toLocaleString('en-US', { month: 'long' })} ${d.getFullYear()}`;
-                    }
-                }
-            }
         }).mount('#app')
-
-        // Patch month navigation to dispatch Dex event
-        const origPrev = window.prevMonthBtn && prevMonthBtn.onclick;
-        const origNext = window.nextMonthBtn && nextMonthBtn.onclick;
-        if (window.prevMonthBtn) {
-            prevMonthBtn.addEventListener('click', () => {
-                setTimeout(() => window.dispatchEvent(new Event('dex-month-changed')), 100);
-            });
-        }
-        if (window.nextMonthBtn) {
-            nextMonthBtn.addEventListener('click', () => {
-                setTimeout(() => window.dispatchEvent(new Event('dex-month-changed')), 100);
-            });
-        }
     </script>
 </body>
 </html> 

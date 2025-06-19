@@ -88,7 +88,8 @@ async def view_credit_transactions(request: Request):
 @app.get("/ai-categorization", response_class=HTMLResponse)
 async def view_ai_categorization(request: Request):
     """Render the AI categorization testing page."""
-    return templates.TemplateResponse("ai_categorization.html", {"request": request})
+    version = datetime.now().strftime("%Y%m%d%H%M%S")
+    return templates.TemplateResponse("ai_categorization.html", {"request": request, "version": version})
 
 @app.post("/api/switch-data/{filename}")
 async def switch_data(filename: str):
