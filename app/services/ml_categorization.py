@@ -192,32 +192,45 @@ class MLCategorizationService:
 
     def categorize_descriptions(self, descriptions, original_categories=None):
         """Categorize transaction descriptions using the trained model."""
+        print(f"🤖 [ML DEBUG] categorize_descriptions called with {len(descriptions) if descriptions else 0} descriptions")
+        
         if not descriptions:
             self.logger.warning("[MLCategorization] Empty descriptions list provided")
+            print("🤖 [ML DEBUG] Empty descriptions list")
             return []
             
         if not isinstance(descriptions, list):
             self.logger.error("[MLCategorization] Descriptions must be a list")
+            print("🤖 [ML DEBUG] Descriptions not a list")
             return []
             
         if original_categories and len(descriptions) != len(original_categories):
             self.logger.error("[MLCategorization] Mismatch between descriptions and original_categories lengths")
+            print("🤖 [ML DEBUG] Length mismatch between descriptions and original_categories")
             return []
+            
+        print(f"🤖 [ML DEBUG] First 3 descriptions: {descriptions[:3]}")
             
         try:
             # Transform descriptions
             X = self.vectorizer.transform(descriptions)
+            print(f"🤖 [ML DEBUG] Vectorizer transform completed, shape: {X.shape}")
             
             if X.shape[0] == 0:
                 self.logger.warning("[MLCategorization] Vectorizer returned empty matrix")
+                print("🤖 [ML DEBUG] Empty vectorizer matrix")
                 return []
                 
             # Get predictions and probabilities
             predictions = self.model.predict(X)
             probabilities = self.model.predict_proba(X)
             
+            print(f"🤖 [ML DEBUG] Model predictions completed, got {len(predictions)} predictions")
+            print(f"🤖 [ML DEBUG] First 3 predictions: {predictions[:3]}")
+            
             if len(predictions) == 0 or len(probabilities) == 0:
                 self.logger.warning("[MLCategorization] Model returned empty predictions")
+                print("🤖 [ML DEBUG] Empty model predictions")
                 return []
                 
             # Get feature names
@@ -227,6 +240,9 @@ class MLCategorizationService:
             results = []
             for i, (desc, pred, probs) in enumerate(zip(descriptions, predictions, probabilities)):
                 try:
+                    # Initialize variables for this transaction
+                    top_categories = []
+                    
                     # Get original category if provided
                     original_category = original_categories[i] if original_categories else None
                     
@@ -265,41 +281,60 @@ class MLCategorizationService:
                         # Sort by probability
                         top_categories.sort(key=lambda x: x[1], reverse=True)
                         
+                        print(f"🤖 [ML DEBUG] Transaction {i}: '{desc[:30]}' - Top categories: {top_categories[:3]}")
+                        
                         # Use highest probability category
                         if top_categories:
                             category = top_categories[0][0]
                             explanation = f"Top features: {', '.join(top_features[:3])}"
+                            print(f"🤖 [ML DEBUG] Selected category: {category} with confidence {top_categories[0][1]:.3f}")
                         else:
                             category = 'misc'
                             explanation = "No high confidence predictions"
+                            print(f"🤖 [ML DEBUG] No high confidence predictions, defaulting to misc")
                     
                     # Log the categorization only if prediction differs from original
                     if original_category and original_category.lower() != category.lower():
                         self.logger.info(f"[MLCategorization] Description: {desc} | Original: {original_category} | Predicted: {category}")
                     
-                    results.append({
+                    result_item = {
                         'description': desc,
                         'original_category': original_category,
                         'predicted': category,
-                        'top': top_categories[:3] if 'top_categories' in locals() else [],
+                        'confidence': top_categories[0][1] if top_categories else 0.0,
+                        'top': top_categories[:3],
                         'explanation': explanation
-                    })
+                    }
+                    results.append(result_item)
+                    
+                    if i < 3:  # Log first 3 results for debugging
+                        print(f"🤖 [ML DEBUG] Result {i}: {result_item}")
                     
                 except Exception as e:
                     self.logger.error(f"[MLCategorization] Error processing transaction {i}: {str(e)}")
                     # Add a default result for failed transactions
                     results.append({
                         'description': desc,
-                        'original_category': original_category if original_categories else None,
+                        'original_category': original_categories[i] if original_categories else None,
                         'predicted': 'misc',
+                        'confidence': 0.0,
                         'top': [('misc', 1.0)],
                         'explanation': f"Error in processing - defaulting to Misc: {str(e)}"
                     })
+            
+            print(f"🤖 [ML DEBUG] Completed categorization: {len(results)} results returned")
+            if results:
+                predicted_counts = {}
+                for r in results:
+                    pred = r.get('predicted', 'unknown')
+                    predicted_counts[pred] = predicted_counts.get(pred, 0) + 1
+                print(f"🤖 [ML DEBUG] Category distribution: {predicted_counts}")
             
             return results
             
         except Exception as e:
             self.logger.error(f"[MLCategorization] Error in categorization: {str(e)}")
+            print(f"🤖 [ML DEBUG] Categorization error: {str(e)}")
             return []
 
     def _get_top_features(self, X, feature_names, pred):

@@ -15,3 +15,4 @@ alwaysApply: true
 – Mocking data is only needed for tests, never mock data for dev or prod  
 – Never add stubbing or fake data patterns to code that affects the dev or prod environments  
 – Never overwrite my .env file without first asking and confirming
+– For all documentation created, place it within a dedicated subfolder. If a relevant subfolder (e.g., 'Documentation', 'Docs', or a feature-specific folder) already exists, use it. Otherwise, create a new subfolder that best describes the documentation's content (e.g., 'API_Documentation', 'User_Guides', 'Project_X_Docs') within the appropriate project or module directory, and then place the documentation there. Never place documentation directly in the root of the repository or a module.

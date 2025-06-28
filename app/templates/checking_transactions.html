@@ -103,8 +103,8 @@
     <script>
         const { createApp } = Vue
 
-        // Initialize currentMonth with current date
-        window.currentMonth = new Date().toISOString().slice(0, 7); // Format: YYYY-MM
+        // Initialize currentMonth with June 2025
+        window.currentMonth = '2025-06'; // Format: YYYY-MM
         console.log('[DEBUG] Initialized currentMonth:', window.currentMonth);
 
         createApp({
@@ -117,7 +117,7 @@
             mounted() {
                 // Initialize currentMonth if not set
                 if (!window.currentMonth) {
-                    window.currentMonth = new Date().toISOString().slice(0, 7);
+                    window.currentMonth = '2025-06';
                     console.log('[DEBUG] Set initial currentMonth:', window.currentMonth);
                 }
             },

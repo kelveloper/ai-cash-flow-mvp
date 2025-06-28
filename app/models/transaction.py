@@ -17,13 +17,30 @@ class TransactionFrequency(str, Enum):
     ONE_TIME = "one_time"
 
 class TransactionCategory(str, Enum):
+    # Capital One Categories (Primary)
+    DINING_RESTAURANTS = "dining_restaurants"
+    GROCERIES = "groceries"
+    MERCHANDISE_SHOPPING = "merchandise_shopping"
+    GAS_AUTOMOTIVE = "gas_automotive"
+    PHONE_CABLE_UTILITIES = "phone_cable_utilities"
+    TRAVEL = "travel"
+    TRAVEL_AIRLINES = "travel_airlines"
+    TRAVEL_HOTELS = "travel_hotels"
+    TRAVEL_CAR_RENTALS = "travel_car_rentals"
+    ENTERTAINMENT = "entertainment"
+    HOME = "home"
+    HOME_RENT_MORTGAGE = "home_rent_mortgage"
+    HOME_MAINTENANCE = "home_maintenance"
+    HEALTHCARE = "healthcare"
+    EDUCATION = "education"
+    BILLS_UTILITIES = "bills_utilities"
+    PERSONAL = "personal"
+    
+    # Legacy Categories (for backward compatibility)
     SALARY = "salary"
     RENT = "rent"
     UTILITIES = "utilities"
-    GROCERIES = "groceries"
     TRANSPORTATION = "transportation"
-    ENTERTAINMENT = "entertainment"
-    HEALTHCARE = "healthcare"
     SUBSCRIPTIONS = "subscriptions"
     FEES = "fees"
     TAXES = "taxes"

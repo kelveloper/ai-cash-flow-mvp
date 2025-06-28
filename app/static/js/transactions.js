@@ -39,8 +39,8 @@ let currentFilters = {
     status: ''
 };
 
-// Store the currently edited transaction id (or index) and original category
-let editingCategory = null;
+// Store the currently edited transaction id and original category
+let editingTransactionId = null;
 let originalCategory = null;
 
 let currentLimit = 100;
@@ -228,6 +228,7 @@ function renderMonthlyTransactions() {
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
         </tr>
     `;
     
@@ -332,8 +333,8 @@ function renderTransaction(transaction, rowIndex) {
     const categoryCell = document.createElement('td');
     categoryCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
     
-    if (editingCategory && editingCategory.rowIndex === rowIndex) {
-        console.log('DEBUG: Rendering Save/Cancel for row', rowIndex, transaction);
+    if (editingTransactionId && editingTransactionId === transaction.id) {
+        console.log('DEBUG: Rendering Save/Cancel for transaction', transaction.id, transaction);
         // Show dropdown and Save/Cancel inline
         const wrapper = document.createElement('div');
         wrapper.style.display = 'flex';
@@ -377,7 +378,7 @@ function renderTransaction(transaction, rowIndex) {
                     return;
                 }
                 transaction.category = newCategory;
-                editingCategory = null;
+                editingTransactionId = null;
                 originalCategory = null;
                 renderMonthlyTransactions();
                 alert('Category updated successfully!');
@@ -393,7 +394,7 @@ function renderTransaction(transaction, rowIndex) {
         cancelBtn.onclick = (e) => {
             e.stopPropagation();
             transaction.category = originalCategory;
-            editingCategory = null;
+            editingTransactionId = null;
             originalCategory = null;
             renderMonthlyTransactions();
         };
@@ -402,17 +403,8 @@ function renderTransaction(transaction, rowIndex) {
         categoryCell.innerHTML = '';
         categoryCell.appendChild(wrapper);
     } else {
-        // Show as text, click to edit
+        // Show as text only (no longer clickable - use Edit button instead)
         categoryCell.textContent = transaction.category;
-        categoryCell.style.cursor = 'pointer';
-        categoryCell.title = 'Click to edit category';
-        categoryCell.onclick = (e) => {
-            e.stopPropagation();
-            console.log('DEBUG: Entering edit mode for row', rowIndex, transaction);
-            editingCategory = { rowIndex };
-            originalCategory = transaction.category;
-            renderMonthlyTransactions();
-        };
     }
     
     const amountCell = document.createElement('td');
@@ -423,11 +415,41 @@ function renderTransaction(transaction, rowIndex) {
     statusCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
     statusCell.textContent = transaction.status;
     
+    // Actions cell with Edit button
+    const actionsCell = document.createElement('td');
+    actionsCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-500';
+    
+    if (editingTransactionId && editingTransactionId === transaction.id) {
+        // Show "Editing..." text when in edit mode
+        actionsCell.textContent = 'Editing...';
+        actionsCell.className = 'px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-medium';
+    } else {
+        // Show Edit button
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.className = 'text-blue-600 hover:text-blue-900 font-medium cursor-pointer bg-transparent border-none underline px-2 py-1';
+        editBtn.title = 'Edit category';
+        editBtn.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            console.log('DEBUG: Edit button clicked for transaction', transaction.id, transaction);
+            console.log('DEBUG: Current editingTransactionId:', editingTransactionId);
+            console.log('DEBUG: Setting editingTransactionId to:', transaction.id);
+            editingTransactionId = transaction.id;
+            originalCategory = transaction.category;
+            console.log('DEBUG: Original category:', originalCategory);
+            console.log('DEBUG: About to call renderMonthlyTransactions()');
+            renderMonthlyTransactions();
+        };
+        actionsCell.appendChild(editBtn);
+    }
+    
     tr.appendChild(dateCell);
     tr.appendChild(descCell);
     tr.appendChild(categoryCell);
     tr.appendChild(amountCell);
     tr.appendChild(statusCell);
+    tr.appendChild(actionsCell);
     
     return tr;
 }
