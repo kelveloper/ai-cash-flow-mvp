@@ -2,6 +2,7 @@ import { useAccountSummary, useTransactions } from '../hooks/useTransactions'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import ErrorMessage from '../components/ui/ErrorMessage'
 import { Link } from 'react-router-dom'
+import AIInsights from '../components/ai/AIInsights'
 
 const Dashboard = () => {
   const { data: summary, isLoading: summaryLoading, error: summaryError } = useAccountSummary()
@@ -156,41 +157,25 @@ const Dashboard = () => {
                   <p className="text-gray-500 text-lg">You have no recent transactions.</p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {topRecentTransactions.map((transaction, index) => (
-                    <div key={transaction.id || index} className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                          <span className="text-xl">
-                            {transaction.category === 'salary' ? '💰' :
-                             transaction.category === 'coffee' ? '☕' :
-                             transaction.category === 'rent' ? '🏠' :
-                             transaction.category === 'utilities' ? '⚡' :
-                             transaction.category === 'food' ? '🍽️' : '💳'}
-                          </span>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900">{transaction.description}</h4>
-                          <p className="text-sm text-gray-500">
-                            {new Date(transaction.date).toLocaleDateString('en-US', { 
-                              month: 'short', 
-                              day: 'numeric' 
-                            })} • {transaction.category}
-                          </p>
-                        </div>
+                <div className="divide-y divide-gray-200">
+                  {topRecentTransactions.map(transaction => (
+                    <div key={transaction.id} className="py-4 flex justify-between items-center">
+                      <div>
+                        <p className="font-medium text-gray-800">{transaction.description}</p>
+                        <p className="text-sm text-gray-500">{new Date(transaction.date).toLocaleDateString()}</p>
                       </div>
-                      <div className="text-right">
-                        <p className={`font-semibold ${
-                          transaction.type === 'income' ? 'text-green-600' : 'text-gray-900'
-                        }`}>
-                          {transaction.type === 'income' ? '+' : '-'}${Math.abs(transaction.amount).toLocaleString()}
-                        </p>
-                        <p className="text-sm text-gray-500 capitalize">{transaction.status}</p>
-                      </div>
+                      <p className={`font-semibold ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {transaction.amount > 0 ? '+' : '-'}${Math.abs(transaction.amount).toFixed(2)}
+                      </p>
                     </div>
                   ))}
                 </div>
               )}
+
+              {/* AI Insights Panel */}
+              <div className="mt-8">
+                <AIInsights transactions={recentTransactions} />
+              </div>
             </div>
           </div>
         </div>

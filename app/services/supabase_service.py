@@ -65,8 +65,11 @@ class SupabaseService:
             if search:
                 query = query.ilike('description', f'%{search}%')
             
-            if limit:
+            if limit and limit > 0:
                 query = query.limit(limit)
+                logger.info(f"Applied limit of {limit} to checking transactions query")
+            else:
+                logger.info("No limit applied to checking transactions query - fetching all records")
             
             # Order by date descending
             query = query.order('date', desc=True)
@@ -129,8 +132,11 @@ class SupabaseService:
             if search:
                 query = query.ilike('description', f'%{search}%')
             
-            if limit:
+            if limit and limit > 0:
                 query = query.limit(limit)
+                logger.info(f"Applied limit of {limit} to credit transactions query")
+            else:
+                logger.info("No limit applied to credit transactions query - fetching all records")
             
             # Order by date descending
             query = query.order('date', desc=True)

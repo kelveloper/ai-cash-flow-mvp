@@ -1,31 +1,50 @@
 # AI-Powered Cash Flow Dashboard
 
-A modern cash flow dashboard with AI-powered insights, built with FastAPI and React.
+This project is a sophisticated, AI-powered cash flow dashboard designed to provide insightful and actionable financial analysis. It emulates the user experience of leading financial platforms like Capital One, enhanced with a powerful AI engine for transaction categorization, forecasting, and anomaly detection.
+
+## Key Features
+
+- **Capital One-Inspired UI**: A familiar and intuitive interface for a seamless user experience.
+- **AI-Powered Transaction Categorization**: Automatically categorizes transactions with high accuracy using a multi-layered approach (Genify API, local ML model, keyword matching).
+- **Intelligent Insights Panel**: Provides actionable insights, such as top spending categories, largest transactions, and recurring subscriptions.
+- **Transaction Reporting**: Generate PDF reports of monthly transactions for easy record-keeping.
+- **Advanced Filtering**: Comprehensive filtering options for transactions, including by date, amount, category, and account type.
+- **CSV Data Fallback**: Robust CSV data handling ensures the application is fully testable without a database connection.
+- **Detailed Logging**: In-depth logging for all AI and backend processes, providing full transparency.
 
 ## Tech Stack
 
-### Backend
-- **Framework**: FastAPI (Python 3.9+)
-- **Database**: SQLite (via SQLAlchemy ORM)
-- **Data Processing**: Pandas, NumPy
-- **API Documentation**: Swagger UI (OpenAPI)
-- **Testing**: Pytest
+- **Frontend**: React, Vite, Tailwind CSS
+- **Backend**: Python, FastAPI
+- **AI/ML**: Scikit-learn, Pandas, NumPy
+- **PDF Generation**: jsPDF, jspdf-autotable
 
-### Frontend
-- **Framework**: React 18
-- **Build Tool**: Vite (Lightning Fast HMR)
-- **Styling**: Tailwind CSS
-- **Charts**: Chart.js with react-chartjs-2
-- **State Management**: React Query (@tanstack/react-query)
-- **UI Components**: Headless UI
-- **Routing**: React Router Dom
-- **HTTP Client**: Axios
+## Getting Started
 
-### Development Tools
-- **Package Manager**: npm (Node.js)
-- **Version Control**: Git
-- **Code Quality**: ESLint for React
-- **Environment Management**: Python venv
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd ai-cash-flow-mvp
+   ```
+2. **Set up the backend:**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   ```
+3. **Set up the frontend:**
+   ```bash
+   npm install
+   ```
+4. **Run the application:**
+   ```bash
+   npm run dev
+   ```
+This will start both the FastAPI backend (on port 8000) and the React frontend (on port 3000).
+
+## Project Status
+
+This project has successfully implemented all core features outlined in the initial timeline. The AI categorization system is highly accurate and performant, and the application provides a robust and intuitive user experience.
 
 ## Project Structure
 ```

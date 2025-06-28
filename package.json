@@ -28,6 +28,8 @@
     "clsx": "^1.2.1",
     "concurrently": "^8.2.2",
     "date-fns": "^2.29.3",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "postcss": "^8.4.35",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",

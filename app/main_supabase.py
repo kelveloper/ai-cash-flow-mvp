@@ -293,7 +293,7 @@ async def categorize_month(request: Request):
                 category, confidence = ml_categorizer.categorize_transaction(transaction['description'])
                 
                 # Only update if confidence is reasonable
-                if confidence >= 0.3:
+                if confidence >= 0.1:
                     updates.append({
                         'id': transaction['id'],
                         'category': category,
