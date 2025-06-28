@@ -13,23 +13,36 @@ const DexChatbot = ({ accountType, currentMonth, onTemporaryCategorizations }) =
   const [previewChanges, setPreviewChanges] = useState(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
 
-  // Reset categorization result when month or account type changes
+  // Auto-refresh data when month or account type changes
   useEffect(() => {
-    setCategorizeResult(null)
-    setLastCategorized(null)
-    setCurrentTransactions(null)
-  }, [currentMonth, accountType])
+    const refreshData = async () => {
+      console.log(`[DexChatbot] Month or account type changed: ${currentMonth}, ${accountType}`)
+      
+      // Clear previous results when month changes
+      setCategorizeResult(null)
+      setPreviewChanges(null)
+      setShowPreviewModal(false)
+      setShowConfirmDialog(false)
+      setLastCategorized(null)
+      
+      // Fetch fresh transaction data for the new month
+      await fetchCurrentTransactions()
+    }
+    
+    refreshData()
+  }, [currentMonth, accountType]) // Dependencies: re-run when these change
 
   const fetchCurrentTransactions = async () => {
     try {
       console.log(`[DexChatbot] Fetching transactions for month=${currentMonth}, accountType=${accountType}`)
-      const response = await fetch(`/api/transactions?month=${currentMonth}&account_type=${accountType}`)
+      // Remove any limits to ensure we get ALL transactions for the month
+      const response = await fetch(`/api/transactions?month=${currentMonth}&account_type=${accountType}&limit=999999`)
       if (response.ok) {
         const data = await response.json()
         console.log('[DexChatbot] API response:', data)
         // Extract transactions array from the response object
         const transactionsArray = Array.isArray(data?.transactions) ? data.transactions : []
-        console.log(`[DexChatbot] Extracted ${transactionsArray.length} transactions`)
+        console.log(`[DexChatbot] Extracted ${transactionsArray.length} transactions for full month ${currentMonth}`)
         setCurrentTransactions(transactionsArray)
         return transactionsArray
       } else {
@@ -195,8 +208,14 @@ const DexChatbot = ({ accountType, currentMonth, onTemporaryCategorizations }) =
     setShowPreviewModal(true)
     
     try {
+      console.log(`[DexChatbot] Getting preview for month ${currentMonth}`)
+      
+      // Ensure we have fresh transaction data before preview
+      await fetchCurrentTransactions()
+      
       // Get preview of what would be categorized
       const result = await aiService.categorizeMonth(currentMonth)
+      console.log(`[DexChatbot] Preview result:`, result)
       setPreviewChanges(result)
     } catch (error) {
       console.error('Error getting preview:', error)
@@ -482,7 +501,7 @@ const DexChatbot = ({ accountType, currentMonth, onTemporaryCategorizations }) =
                 <div>
                   <div className="mb-4 p-3 bg-blue-50 rounded-lg">
                     <p className="text-blue-800 text-sm">
-                      📊 Found {previewChanges.suggestions.length} transactions that will be categorized with AI confidence ≥ 30%
+                      📊 Found {previewChanges.suggestions.length} transactions analyzed by AI
                     </p>
                   </div>
 
@@ -490,11 +509,11 @@ const DexChatbot = ({ accountType, currentMonth, onTemporaryCategorizations }) =
                     <table className="w-full border-collapse border border-gray-300">
                       <thead>
                         <tr className="bg-gray-50">
+                          <th className="border border-gray-300 px-3 py-2 text-left text-sm">Date</th>
                           <th className="border border-gray-300 px-3 py-2 text-left text-sm">Description</th>
                           <th className="border border-gray-300 px-3 py-2 text-left text-sm">Amount</th>
                           <th className="border border-gray-300 px-3 py-2 text-left text-sm">Current</th>
                           <th className="border border-gray-300 px-3 py-2 text-left text-sm">AI Prediction</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left text-sm">Confidence</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -505,6 +524,13 @@ const DexChatbot = ({ accountType, currentMonth, onTemporaryCategorizations }) =
                           )
                           return (
                             <tr key={index} className="hover:bg-gray-50">
+                              <td className="border border-gray-300 px-3 py-2 text-sm">
+                                {transaction?.date ? new Date(transaction.date).toLocaleDateString('en-US', { 
+                                  month: 'short', 
+                                  day: 'numeric',
+                                  year: 'numeric'
+                                }) : 'Unknown'}
+                              </td>
                               <td className="border border-gray-300 px-3 py-2 text-sm">
                                 {transaction?.description || 'Unknown'}
                               </td>
@@ -521,17 +547,6 @@ const DexChatbot = ({ accountType, currentMonth, onTemporaryCategorizations }) =
                                   {suggestion.category}
                                 </span>
                               </td>
-                              <td className="border border-gray-300 px-3 py-2 text-sm">
-                                <span className={`px-2 py-1 rounded text-xs ${
-                                  suggestion.confidence >= 0.7 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : suggestion.confidence >= 0.5
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-orange-100 text-orange-800'
-                                }`}>
-                                  {(suggestion.confidence * 100).toFixed(1)}%
-                                </span>
-                              </td>
                             </tr>
                           )
                         })}
@@ -539,12 +554,7 @@ const DexChatbot = ({ accountType, currentMonth, onTemporaryCategorizations }) =
                     </table>
                   </div>
 
-                  <div className="mt-4 p-3 bg-gray-50 rounded text-sm text-gray-600">
-                    <p><strong>Confidence Levels:</strong></p>
-                    <p>• <span className="px-1 bg-green-100 text-green-800 rounded">70%+</span> High confidence</p>
-                    <p>• <span className="px-1 bg-yellow-100 text-yellow-800 rounded">50-69%</span> Medium confidence</p>
-                    <p>• <span className="px-1 bg-orange-100 text-orange-800 rounded">30-49%</span> Low confidence</p>
-                  </div>
+
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-600">

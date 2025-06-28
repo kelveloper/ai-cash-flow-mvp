@@ -38,7 +38,14 @@ app = FastAPI(title="Cash Flow Dashboard with XAI")
 # Configure CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # React dev server
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://localhost:3002",  # Add support for Vite's backup ports
+        "http://localhost:5173",  # Default Vite port
+        "http://127.0.0.1:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
@@ -65,6 +72,44 @@ except Exception as e:
     # Fallback to None - we'll handle this in endpoints
     db = None
 keyword_categorizer = KeywordCategorizationService()
+
+# CSV fallback data cache
+csv_transactions_cache = None
+
+def load_csv_fallback():
+    """Load CSV data as fallback when Supabase is not available"""
+    global csv_transactions_cache
+    if csv_transactions_cache is not None:
+        return csv_transactions_cache
+    
+    try:
+        csv_path = Path(__file__).parent.parent / "data" / "all_transactions_ready.csv"
+        if csv_path.exists():
+            import pandas as pd
+            df = pd.read_csv(csv_path)
+            
+            # Convert to list of dicts matching the expected format
+            transactions = []
+            for idx, row in df.iterrows():
+                transaction = {
+                    'id': idx + 1,
+                    'date': row.get('date', ''),
+                    'description': row.get('description', ''),
+                    'amount': float(row.get('amount', 0)),
+                    'category': row.get('category', 'misc'),
+                    'account_type': row.get('account_type', 'checking'),
+                    'transaction_type': row.get('transaction_type', 'expense')
+                }
+                transactions.append(transaction)
+            
+            csv_transactions_cache = transactions
+            logger.info(f"📄 CSV Fallback: Loaded {len(transactions)} transactions from CSV")
+            return transactions
+    except Exception as e:
+        logger.error(f"❌ CSV Fallback failed: {e}")
+        return []
+    
+    return []
 
 # Demo user ID for Supabase
 DEMO_USER_ID = "550e8400-e29b-41d4-a716-446655440000"
@@ -233,10 +278,47 @@ async def create_transaction(transaction: TransactionCreate):
 
 @app.get("/api/account-summary")
 async def get_account_summary():
-    """Get account summary from Supabase."""
+    """Get account summary from Supabase or CSV fallback."""
     try:
         if not db:
-            raise HTTPException(status_code=500, detail="Database service not available")
+            # CSV Fallback: Calculate summary from CSV data
+            print(f"[ACCOUNT_SUMMARY] Using CSV fallback data...")
+            csv_transactions = load_csv_fallback()
+            
+            if not csv_transactions:
+                raise HTTPException(status_code=500, detail="Database service not available and CSV fallback failed")
+            
+            # Calculate balances from CSV data
+            checking_balance = 0
+            credit_balance = 0
+            
+            for t in csv_transactions:
+                amount = t.get('amount', 0)
+                account_type = t.get('account_type', 'checking')
+                transaction_type = t.get('transaction_type', 'expense')
+                
+                if account_type == 'checking':
+                    if transaction_type == 'income':
+                        checking_balance += amount
+                    else:
+                        checking_balance -= amount
+                elif account_type == 'credit':
+                    if transaction_type == 'expense':
+                        credit_balance += amount
+                    else:
+                        credit_balance -= amount
+            
+            print(f"[ACCOUNT_SUMMARY] CSV Fallback: Calculated checking: ${checking_balance:.2f}, credit: ${credit_balance:.2f}")
+            
+            return {
+                "current_balance": round(checking_balance, 2),
+                "available_balance": round(checking_balance, 2),
+                "credit_balance": round(credit_balance, 2),
+                "credit_available": round(5000 - credit_balance if credit_balance > 0 else 5000, 2),
+                "credit_limit": 5000,
+                "pending_transactions": 0,
+                "pending_amount": 0
+            }
             
         # Get account summaries from Supabase
         summaries = await db.get_account_summaries(DEMO_USER_ID)
@@ -303,7 +385,69 @@ async def get_transactions(
         print(f"[TRANSACTIONS] Starting request: account_type={account_type}, month={month}, limit={limit}")
         
         if not db:
-            raise HTTPException(status_code=500, detail="Database service not available")
+            # Fallback to CSV data
+            print(f"[TRANSACTIONS] Using CSV fallback data...")
+            csv_transactions = load_csv_fallback()
+            
+            if not csv_transactions:
+                raise HTTPException(status_code=500, detail="Database service not available and CSV fallback failed")
+            
+            # Apply filters to CSV data
+            filtered_transactions = csv_transactions.copy()
+            
+            # Filter by account type
+            if account_type:
+                filtered_transactions = [t for t in filtered_transactions if t.get('account_type') == account_type]
+            
+            # Filter by month
+            if month:
+                try:
+                    month_prefix = month + "-"  # e.g., "2025-06-"
+                    filtered_transactions = [t for t in filtered_transactions if str(t.get('date', '')).startswith(month_prefix)]
+                except Exception:
+                    pass
+            
+            # Filter by category
+            if category:
+                filtered_transactions = [t for t in filtered_transactions if t.get('category') == category]
+            
+            # Filter by search term
+            if search:
+                search_lower = search.lower()
+                filtered_transactions = [t for t in filtered_transactions if search_lower in str(t.get('description', '')).lower()]
+            
+            # Filter by amount range
+            if minAmount is not None:
+                filtered_transactions = [t for t in filtered_transactions if abs(t.get('amount', 0)) >= minAmount]
+            if maxAmount is not None:
+                filtered_transactions = [t for t in filtered_transactions if abs(t.get('amount', 0)) <= maxAmount]
+            
+            # Apply offset and limit
+            if offset:
+                filtered_transactions = filtered_transactions[offset:]
+            if limit:
+                filtered_transactions = filtered_transactions[:limit]
+            
+            # Convert to response format
+            response_transactions = []
+            for t in filtered_transactions:
+                transaction_data = {
+                    "id": t['id'],
+                    "date": t['date'],
+                    "amount": t['amount'],
+                    "description": t['description'],
+                    "category": t['category'],
+                    "type": t.get('transaction_type', 'expense'),
+                    "status": 'completed',
+                    "account_type": t.get('account_type', 'checking')
+                }
+                response_transactions.append(transaction_data)
+            
+            # Apply temporary categorizations
+            response_transactions = apply_temporary_categorizations(response_transactions)
+            
+            print(f"[TRANSACTIONS] CSV Fallback: Returning {len(response_transactions)} transactions")
+            return {"transactions": response_transactions}
         
         # Parse date filters - prioritize custom date range over month
         start_date = None
@@ -341,6 +485,7 @@ async def get_transactions(
             effective_limit = limit or 100  # Default 100 for general queries
             
         print(f"[TRANSACTIONS] Using effective_limit: {effective_limit or 'unlimited'}")
+        print(f"[TRANSACTIONS] Date range: {start_date} to {end_date}")
         
         transactions = []
         
@@ -350,6 +495,7 @@ async def get_transactions(
                 DEMO_USER_ID, start_date=start_date, end_date=end_date, 
                 category=category, search=search, limit=effective_limit, offset=offset
             )
+            print(f"[TRANSACTIONS] Retrieved {len(transactions)} checking transactions from database")
             # Add account_type field
             for t in transactions:
                 t['account_type'] = 'checking'
@@ -360,6 +506,7 @@ async def get_transactions(
                 DEMO_USER_ID, start_date=start_date, end_date=end_date, 
                 category=category, search=search, limit=effective_limit, offset=offset
             )
+            print(f"[TRANSACTIONS] Retrieved {len(transactions)} credit transactions from database")
             # Add account_type field
             for t in transactions:
                 t['account_type'] = 'credit'
@@ -377,22 +524,23 @@ async def get_transactions(
             
             print(f"[TRANSACTIONS] Fetching both account types (checking: {checking_limit or 'unlimited'}, credit: {credit_limit or 'unlimited'})...")
             
-            checking = await db.get_checking_transactions(
+            checking_transactions = await db.get_checking_transactions(
                 DEMO_USER_ID, start_date=start_date, end_date=end_date, 
                 category=category, search=search, limit=checking_limit, offset=offset
             )
-            credit = await db.get_credit_transactions(
+            credit_transactions = await db.get_credit_transactions(
                 DEMO_USER_ID, start_date=start_date, end_date=end_date, 
                 category=category, search=search, limit=credit_limit, offset=offset
             )
+            print(f"[TRANSACTIONS] Retrieved {len(checking_transactions)} checking + {len(credit_transactions)} credit transactions from database")
             
             # Add account_type field to distinguish them
-            for t in checking:
+            for t in checking_transactions:
                 t['account_type'] = 'checking'
-            for t in credit:
+            for t in credit_transactions:
                 t['account_type'] = 'credit'
                 
-            transactions = checking + credit
+            transactions = checking_transactions + credit_transactions
             # Sort by date descending
             transactions.sort(key=lambda x: x['date'], reverse=True)
             
@@ -537,15 +685,12 @@ async def categorize_transaction_enhanced(request: CategorizeRequest):
 
 @app.post("/api/categorize-month")
 async def categorize_month(request: Request):
-    """Categorize all uncategorized transactions for a specific month using ML."""
+    """Categorize all uncategorized transactions for a specific month using enhanced ML with fallbacks."""
     try:
-        if not db or not ml_categorizer:
-            raise HTTPException(status_code=500, detail="Required services not available")
-        
         data = await request.json()
         month = data.get("month")
         
-        print(f"🔍 [DEBUG] Starting categorization for month: {month}")
+        print(f"🚀 [ENHANCED] Starting categorization for month: {month}")
         
         if not month:
             raise HTTPException(status_code=400, detail="Month is required")
@@ -561,19 +706,40 @@ async def categorize_month(request: Request):
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid month format. Use YYYY-MM")
         
-        print(f"🔍 [DEBUG] Date range: {start_date} to {end_date}")
+        print(f"🚀 [ENHANCED] Date range: {start_date} to {end_date}")
         
-        # Get transactions for the month
-        checking_transactions = await db.get_checking_transactions(
-            DEMO_USER_ID, start_date=start_date, end_date=end_date
-        )
-        credit_transactions = await db.get_credit_transactions(
-            DEMO_USER_ID, start_date=start_date, end_date=end_date
-        )
+        # Get transactions - use CSV fallback if database not available
+        all_transactions = []
         
-        all_transactions = checking_transactions + credit_transactions
-        print(f"🔍 [DEBUG] Total transactions found: {len(all_transactions)}")
-        print(f"🔍 [DEBUG] Checking: {len(checking_transactions)}, Credit: {len(credit_transactions)}")
+        if not db:
+            # CSV Fallback mode
+            print(f"🌐 [ENHANCED] Using CSV fallback data for categorization...")
+            csv_transactions = load_csv_fallback()
+            
+            if not csv_transactions:
+                print("❌ [ENHANCED] No CSV data available")
+                raise HTTPException(status_code=500, detail="No data source available")
+            
+            # Filter by month
+            month_prefix = month + "-"  # e.g., "2025-06-"
+            all_transactions = [
+                t for t in csv_transactions 
+                if str(t.get('date', '')).startswith(month_prefix)
+            ]
+            print(f"🌐 [ENHANCED] Found {len(all_transactions)} transactions in CSV for {month}")
+            
+        else:
+            # Database mode
+            print(f"🌐 [ENHANCED] Using database for transactions...")
+            checking_transactions = await db.get_checking_transactions(
+                DEMO_USER_ID, start_date=start_date, end_date=end_date
+            )
+            credit_transactions = await db.get_credit_transactions(
+                DEMO_USER_ID, start_date=start_date, end_date=end_date
+            )
+            all_transactions = checking_transactions + credit_transactions
+        
+        print(f"🚀 [ENHANCED] Total transactions found: {len(all_transactions)}")
         
         # Filter uncategorized transactions (misc, empty, or None)
         uncategorized = [
@@ -581,62 +747,111 @@ async def categorize_month(request: Request):
             if not t.get('category') or t.get('category').lower() in ['misc', 'miscellaneous', '']
         ]
         
-        print(f"🔍 [DEBUG] Uncategorized transactions found: {len(uncategorized)}")
+        print(f"🚀 [ENHANCED] Uncategorized transactions found: {len(uncategorized)}")
         
         # Show first few uncategorized examples
         if uncategorized:
-            print("🔍 [DEBUG] First 5 uncategorized transactions:")
+            print("🚀 [ENHANCED] First 5 uncategorized transactions:")
             for i, t in enumerate(uncategorized[:5]):
                 print(f"  {i+1}. ID: {t.get('id')}, Category: '{t.get('category')}', Description: '{t.get('description')[:50]}...'")
         
         categorized_count = 0
         updates = []
         
-        # Categorize transactions using the ML service
+        # Enhanced categorization with fallback strategy
         if uncategorized:
-            descriptions = [t['description'] for t in uncategorized]
-            print(f"🔍 [DEBUG] Sending {len(descriptions)} descriptions to ML categorizer")
+            print(f"🚀 [ENHANCED] Processing {len(uncategorized)} uncategorized transactions")
             
-            try:
-                results = ml_categorizer.categorize_descriptions(descriptions)
-                print(f"🔍 [DEBUG] ML categorizer returned {len(results)} results")
+            # Progress tracking for better user experience
+            total_uncategorized = len(uncategorized)
+            
+            # Try enhanced categorization for each transaction
+            for i, transaction in enumerate(uncategorized):
+                # Show progress every 5 transactions
+                if i % 5 == 0:
+                    progress_pct = (i / total_uncategorized) * 100
+                    print(f"📊 [PROGRESS] {i}/{total_uncategorized} ({progress_pct:.1f}%) transactions processed")
+                description = transaction['description']
+                transaction_id = transaction['id']
+                original_category = transaction.get('category', 'Misc')
                 
-                # Show first few predictions
-                print("🔍 [DEBUG] First 5 ML predictions:")
-                for i, result in enumerate(results[:5]):
-                    print(f"  {i+1}. Predicted: '{result.get('predicted')}', Confidence: {result.get('confidence'):.3f}")
-                
-                for i, result in enumerate(results):
-                    predicted_category = result.get('predicted')
-                    confidence = result.get('confidence', 0)
-                    
-                    print(f"🔍 [DEBUG] Transaction {i+1}: '{uncategorized[i]['description'][:30]}' -> '{predicted_category}' (confidence: {confidence:.3f})")
-                    
-                    if predicted_category and confidence >= 0.3:
-                        updates.append({
-                            'id': uncategorized[i]['id'],
-                            'category': predicted_category,
-                            'confidence': confidence,
-                            'original_category': uncategorized[i].get('category', 'Misc')
-                        })
-                        categorized_count += 1
-                        print(f"✅ [DEBUG] Added to updates: {predicted_category}")
-                    else:
-                        print(f"❌ [DEBUG] Skipped - low confidence or no prediction")
+                try:
+                    # Try enhanced categorization first (Genify API + ML fallback)
+                    if enhanced_categorizer:
+                        result = enhanced_categorizer.categorize_transaction_enhanced(description)
                         
-            except Exception as e:
-                logger.error(f"Error categorizing transactions: {str(e)}")
-                print(f"🔍 [DEBUG] ML categorization error: {str(e)}")
-                return {
-                    "total_transactions": len(all_transactions),
-                    "uncategorized_found": len(uncategorized),
-                    "categorized_count": 0,
-                    "updated_count": 0,
-                    "month": month,
-                    "error": f"ML categorization failed: {str(e)}"
-                }
+                        predicted_category = result.get('category')
+                        confidence = result.get('confidence', 0)
+                        source = result.get('source', 'unknown')
+                        
+                        # For pattern-matched transactions (store-specific), accept with lower threshold
+                        is_pattern_matched = result.get('explanation', '').startswith('Store-specific pattern matched')
+                        confidence_threshold = 0.0 if is_pattern_matched else 0.1
+                        
+                        # Only log interesting results (successful categorizations or issues)
+                        if predicted_category and confidence >= confidence_threshold:
+                            print(f"✅ [ENHANCED] {description[:30]} → {predicted_category} ({source})")
+                        elif i % 10 == 0:  # Log every 10th transaction for debugging
+                            print(f"⚠️ [ENHANCED] {description[:30]} → {predicted_category} (confidence: {confidence:.3f}, threshold: {confidence_threshold})")
+                        
+                        if predicted_category and confidence >= confidence_threshold:
+                            updates.append({
+                                'id': transaction_id,
+                                'category': predicted_category,
+                                'confidence': confidence,
+                                'original_category': original_category,
+                                'source': source,
+                                'description': description
+                            })
+                            categorized_count += 1
+                    
+                    # Fallback to ML categorizer if enhanced categorizer not available
+                    elif ml_categorizer:
+                        results = ml_categorizer.categorize_descriptions([description])
+                        
+                        if results and len(results) > 0:
+                            result = results[0]
+                            predicted_category = result.get('predicted')
+                            confidence = result.get('confidence', 0)
+                            
+                            if predicted_category and confidence >= 0.1:
+                                print(f"✅ [ML] {description[:30]} → {predicted_category} (confidence: {confidence:.3f})")
+                                updates.append({
+                                    'id': transaction_id,
+                                    'category': predicted_category,
+                                    'confidence': confidence,
+                                    'original_category': original_category,
+                                    'source': 'local_ml',
+                                    'description': description
+                                })
+                                categorized_count += 1
+                    
+                    # Final fallback to keyword categorization
+                    else:
+                        categories = [category.value for category in TransactionCategory]
+                        result = keyword_categorizer.categorize_transaction(description, categories)
+                        
+                        predicted_category = result.get('category')
+                        confidence = result.get('confidence', 0)
+                        
+                        if predicted_category and confidence >= 0.1:
+                            print(f"✅ [KEYWORD] {description[:30]} → {predicted_category} (confidence: {confidence:.3f})")
+                            updates.append({
+                                'id': transaction_id,
+                                'category': predicted_category,
+                                'confidence': confidence,
+                                'original_category': original_category,
+                                'source': 'keyword',
+                                'description': description
+                            })
+                            categorized_count += 1
+                            
+                except Exception as e:
+                    if i % 10 == 0:  # Only log every 10th error to avoid spam
+                        print(f"❌ [ENHANCED] Error categorizing '{description[:30]}': {str(e)}")
+                    continue
         
-        print(f"🔍 [DEBUG] Final results: {categorized_count} transactions categorized with {len(updates)} updates")
+        print(f"🚀 [ENHANCED] Final results: {categorized_count} transactions categorized with {len(updates)} updates")
         
         # Return categorization suggestions without updating database
         # This allows for temporary/preview categorization
@@ -1002,7 +1217,7 @@ async def generate_categorization_pdf(request: Request):
                     for result in results:
                         confidence = result.get('confidence', 0)
                         predicted_category = result.get('predicted')
-                        if predicted_category and confidence >= 0.3:
+                        if predicted_category and confidence >= 0.1:
                             potential_categorizations += 1
                     
                     print(f"[PDF] AI would categorize {potential_categorizations} out of {uncategorized_count} uncategorized transactions")

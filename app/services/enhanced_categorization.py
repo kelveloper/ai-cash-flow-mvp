@@ -1,5 +1,6 @@
 import requests
 import logging
+import os
 from typing import List, Dict, Any, Optional
 from app.services.ml_categorization import MLCategorizationService
 
@@ -20,10 +21,16 @@ class EnhancedCategorizationService:
             self.logger.error(f"Failed to load ML service: {e}")
             self.ml_service = None
         
-        # API configurations (add your keys here)
-        self.genify_api_key = None  # Get from environment
-        self.salt_edge_app_id = None  # Get from environment
-        self.salt_edge_secret = None  # Get from environment
+        # API configurations - load from environment variables
+        self.genify_api_key = os.environ.get('GENIFY_API_KEY')
+        self.salt_edge_app_id = os.environ.get('SALT_EDGE_APP_ID')
+        self.salt_edge_secret = os.environ.get('SALT_EDGE_SECRET')
+        
+        # Log API key status
+        if self.genify_api_key:
+            self.logger.info("✅ Genify API key configured")
+        else:
+            self.logger.warning("⚠️ Genify API key not found in environment")
         
     def categorize_transaction_enhanced(
         self, 
@@ -38,10 +45,15 @@ class EnhancedCategorizationService:
         3. Fallback to keyword matching
         """
         
+        # Log the attempt
+        self.logger.info(f"🚀 [ENHANCED] Categorizing: '{description[:50]}...'")
+        
         try:
-            # Try Genify API first (example implementation)
+            # Try Genify API first
+            self.logger.info("🌐 [GENIFY] Attempting Genify API call...")
             api_result = self._try_genify_api(description, amount)
             if api_result and api_result.get('confidence', 0) > 0.7:
+                self.logger.info(f"✅ [GENIFY] SUCCESS - Category: {api_result['category']} (confidence: {api_result['confidence']})")
                 return {
                     'category': api_result['category'],
                     'confidence': api_result['confidence'],
@@ -50,24 +62,32 @@ class EnhancedCategorizationService:
                     'merchant_logo': api_result.get('logo'),
                     'merchant_website': api_result.get('website')
                 }
+            else:
+                self.logger.warning("⚠️ [GENIFY] API returned low confidence or no result")
+                
         except Exception as e:
-            self.logger.warning(f"External API failed: {e}")
+            self.logger.error(f"❌ [GENIFY] API failed: {e}")
         
         # Fallback to your existing ML model
+        self.logger.info("🤖 [ML] Falling back to local ML model...")
         if self.ml_service:
             try:
                 ml_result = self.ml_service.categorize_descriptions([description])
                 if ml_result and len(ml_result) > 0:
+                    predicted_category = ml_result[0].get('predicted', 'misc')
+                    confidence = ml_result[0].get('confidence', 0.6)
+                    self.logger.info(f"✅ [ML] SUCCESS - Category: {predicted_category} (confidence: {confidence:.2f})")
                     return {
-                        'category': ml_result[0]['category'],
-                        'confidence': ml_result[0].get('confidence', 0.6),
+                        'category': predicted_category,
+                        'confidence': confidence,
                         'source': 'local_ml',
-                        'explanation': ml_result[0].get('explanation')
+                        'explanation': ml_result[0].get('explanation', 'ML prediction')
                     }
             except Exception as e:
-                self.logger.warning(f"Local ML failed: {e}")
+                self.logger.error(f"❌ [ML] Local ML failed: {e}")
         
         # Final fallback to simple categorization
+        self.logger.warning("🔄 [FALLBACK] Using keyword fallback categorization")
         return {
             'category': 'misc',
             'confidence': 0.3,
@@ -78,44 +98,75 @@ class EnhancedCategorizationService:
     def _try_genify_api(self, description: str, amount: float = None) -> Optional[Dict]:
         """Try Genify API for categorization"""
         if not self.genify_api_key:
+            self.logger.warning("❌ [GENIFY] No API key configured")
+            return None
+        
+        # Check if it's just a demo key
+        if self.genify_api_key == "demo_key_for_testing":
+            self.logger.warning("🧪 [GENIFY] Using demo key - API will not actually be called")
             return None
             
         try:
-            # Example API call structure (adjust based on actual API)
-            payload = {
-                "transactions": [{
-                    "description": description,
-                    "amount": amount or 1.0,
-                    "currency": "USD"
-                }]
+            # Genify API endpoint and payload based on their documentation
+            self.logger.info(f"📡 [GENIFY] Calling API for: {description[:30]}...")
+            
+            # Genify API expects these query parameters
+            params = {
+                'description': description,
+                'amount': amount or -10.0,  # Negative for expenses
+                'country': 'US',  # Default to US
+                'date': '2025-06-01',  # Use current date in production
+                'currency': 'USD'
             }
             
             headers = {
                 'Authorization': f'Bearer {self.genify_api_key}',
+                'Username': 'your_username',  # Replace with actual username
+                'Account_id': 'account_1',
+                'Category': '1',  # Flag to activate categorizer
                 'Content-Type': 'application/json'
             }
             
-            # This is a placeholder URL - replace with actual Genify endpoint
-            response = requests.post(
-                'https://api.genify.ai/v1/categorize', 
-                json=payload, 
+            # Actual Genify API endpoint
+            response = requests.get(
+                'https://pfm.genify.ai/api/v1.0/txn-data/', 
+                params=params,
                 headers=headers,
-                timeout=5
+                timeout=10
             )
+            
+            self.logger.info(f"📨 [GENIFY] API Response: {response.status_code}")
             
             if response.status_code == 200:
                 result = response.json()
-                if result.get('data') and len(result['data']) > 0:
-                    transaction_data = result['data'][0]
+                self.logger.info(f"📦 [GENIFY] Raw response: {result}")
+                
+                if result:
+                    category_name = result.get('Category Name', 'misc')
+                    clean_description = result.get('Clean Description', result.get('Display Description', ''))
+                    
+                    self.logger.info(f"🎯 [GENIFY] Parsed category: {category_name}")
+                    
                     return {
-                        'category': transaction_data.get('category_name', 'misc').lower(),
-                        'confidence': 0.9,  # Genify typically has high confidence
-                        'clean_name': transaction_data.get('clean_description'),
-                        'logo': transaction_data.get('logo'),
-                        'website': transaction_data.get('merchant_website')
+                        'category': category_name.lower().replace(' ', '_'),
+                        'confidence': 0.95,  # Genify typically has high confidence
+                        'clean_name': clean_description,
+                        'logo': result.get('Logo'),
+                        'website': result.get('Merchant Website')
                     }
+            elif response.status_code == 401:
+                self.logger.error("🔑 [GENIFY] Authentication failed - check API key")
+            elif response.status_code == 400:
+                self.logger.error(f"📝 [GENIFY] Bad request - check parameters: {response.text}")
+            else:
+                self.logger.error(f"🚨 [GENIFY] HTTP {response.status_code}: {response.text}")
+                
+        except requests.exceptions.Timeout:
+            self.logger.error("⏰ [GENIFY] API timeout (>10s)")
+        except requests.exceptions.ConnectionError:
+            self.logger.error("🌐 [GENIFY] Connection error - check internet")
         except Exception as e:
-            self.logger.error(f"Genify API error: {e}")
+            self.logger.error(f"💥 [GENIFY] Unexpected error: {e}")
             
         return None
     
